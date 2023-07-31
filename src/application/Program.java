@@ -18,7 +18,7 @@ public class Program {
 		
 		
 		Department dep = new Department(2, null);
-		List<Seller> sel = sellerDao.findByDepartment(dep);
+		List<Seller> sel = sellerDao.findAll();
 		sel.stream().forEach(System.out::println);
 	}
 
