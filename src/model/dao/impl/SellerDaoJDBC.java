@@ -1,9 +1,11 @@
 package model.dao.impl;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,19 +27,66 @@ public class SellerDaoJDBC implements SellerDao {
 
 	@Override
 	public void insert(Seller seller) {
-		// TODO Auto-generated method stub
+		PreparedStatement ps = null;
+
+		try {
+			ps = conn.prepareStatement(
+					"INSERT INTO seller (Name, Email, BirthDate, BaseSalary, DepartmentId)" + "VALUES (?,?,?,?,?)",
+					Statement.RETURN_GENERATED_KEYS);
+			ps.setString(1, seller.getName());
+			ps.setString(2, seller.getEmail());
+			ps.setDate(3, new java.sql.Date(seller.getBirthDate().getTime()));
+			ps.setDouble(4, seller.getBaseSalary());
+			ps.setInt(5, seller.getDepartment().getId());
+
+			int rows = ps.executeUpdate();
+
+			if (rows > 0) {
+				ResultSet rs = ps.getGeneratedKeys();
+				if (rs.next()) {
+					seller.setId(rs.getInt(1));
+				}
+			} else {
+				System.out.println("ERROR: No rows affected!");
+			}
+
+		} catch (Exception e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(ps);
+		}
 
 	}
 
 	@Override
 	public void update(Seller seller) {
-		// TODO Auto-generated method stub
+		PreparedStatement ps = null;
+		try {
+			ps = conn.prepareStatement("UPDATE seller SET "
+					+ "Name = ?, Email = ?, BirthDate = ?, BaseSalary = ?, DepartmentId = ? " + "WHERE Id = ?");
+			ps.setString(1, seller.getName());
+			ps.setString(2, seller.getEmail());
+			ps.setDate(3, new java.sql.Date(seller.getBirthDate().getTime()));
+			ps.setDouble(4, seller.getBaseSalary());
+			ps.setInt(5, seller.getDepartment().getId());
+			ps.setInt(6, seller.getId());
+			ps.executeUpdate();
+		} catch (Exception e) {
+			throw new DbException(e.getMessage());
+		}
 
 	}
 
 	@Override
 	public void deleteById(Integer id) {
-		// TODO Auto-generated method stub
+		PreparedStatement ps = null;
+		try {
+			ps = conn.prepareStatement("DELETE FROM seller WHERE id = ?");
+			ps.setInt(1, id);
+			ps.executeUpdate();
+		} catch (Exception e) {
+			throw new DbException(e.getMessage());
+		}
 
 	}
 
@@ -52,13 +101,13 @@ public class SellerDaoJDBC implements SellerDao {
 					+ "WHERE seller.Id = ?");
 			ps.setInt(1, id);
 			rs = ps.executeQuery();
-
+			Seller seller = new Seller();
 			if (rs.next()) {
 				Department department = instantiateDepartment(rs);
-				Seller seller = instantiateSeller(rs, department);
+				seller = instantiateSeller(rs, department);
 			}
 
-			return null;
+			return seller;
 
 		} catch (Exception e) {
 			throw new DbException(e.getMessage());
@@ -76,7 +125,7 @@ public class SellerDaoJDBC implements SellerDao {
 		try {
 			ps = conn.prepareStatement("SELECT seller.*, department.Name as DepName "
 					+ "FROM seller INNER JOIN department ON seller.DepartmentId = department.Id "
-					+ "ORDER BY DepartmentId");
+					+ "ORDER BY Id");
 			rs = ps.executeQuery();
 
 			List<Seller> list = new ArrayList<>();
@@ -94,6 +143,9 @@ public class SellerDaoJDBC implements SellerDao {
 
 		} catch (Exception e) {
 			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeResultSet(rs);
+			DB.closeStatement(ps);
 		}
 	}
 
@@ -126,6 +178,9 @@ public class SellerDaoJDBC implements SellerDao {
 
 		} catch (Exception e) {
 			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeResultSet(rs);
+			DB.closeStatement(ps);
 		}
 
 	}

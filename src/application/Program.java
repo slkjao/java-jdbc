@@ -5,21 +5,23 @@ import java.util.List;
 
 import model.dao.DaoFactory;
 import model.dao.SellerDao;
+import model.dao.impl.SellerDaoJDBC;
 import model.entities.Department;
 import model.entities.Seller;
 
 public class Program {
 
+	/**
+	 * @param args
+	 */
 	public static void main(String[] args) {
-		Department obj = new Department(1, "Books");		
-		Seller seller = new Seller(21, "Bob", "bob@gmail.com", new Date(), 3000.0, obj);	
+		Department obj = new Department(1, "Computers");		
+		Seller seller = new Seller(13, "Jamal", "jamal@gmail.com", new Date(), 3000.0, obj);	
 		SellerDao sellerDao = DaoFactory.createSellerDao();
-		Seller seller2 = sellerDao.findById(4);
+		seller.setName("Joana");
+		sellerDao.deleteById(12);
+		sellerDao.findAll().stream().forEach(System.out::println);;
 		
-		
-		Department dep = new Department(2, null);
-		List<Seller> sel = sellerDao.findAll();
-		sel.stream().forEach(System.out::println);
 	}
 
 }
