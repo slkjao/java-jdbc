@@ -73,6 +73,9 @@ public class SellerDaoJDBC implements SellerDao {
 			ps.executeUpdate();
 		} catch (Exception e) {
 			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeConnection();
+			DB.closeStatement(ps);
 		}
 
 	}
@@ -105,9 +108,10 @@ public class SellerDaoJDBC implements SellerDao {
 			if (rs.next()) {
 				Department department = instantiateDepartment(rs);
 				seller = instantiateSeller(rs, department);
+				return seller;
 			}
 
-			return seller;
+			return null;
 
 		} catch (Exception e) {
 			throw new DbException(e.getMessage());
@@ -124,8 +128,7 @@ public class SellerDaoJDBC implements SellerDao {
 
 		try {
 			ps = conn.prepareStatement("SELECT seller.*, department.Name as DepName "
-					+ "FROM seller INNER JOIN department ON seller.DepartmentId = department.Id "
-					+ "ORDER BY Id");
+					+ "FROM seller INNER JOIN department ON seller.DepartmentId = department.Id " + "ORDER BY Id");
 			rs = ps.executeQuery();
 
 			List<Seller> list = new ArrayList<>();
@@ -135,7 +138,7 @@ public class SellerDaoJDBC implements SellerDao {
 				if (dep == null) {
 					dep = instantiateDepartment(rs);
 					map.put(dep.getId(), dep);
-				}
+				}	
 				Seller sel = instantiateSeller(rs, dep);
 				list.add(sel);
 			}
